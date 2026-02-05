@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Church {
+  id                 String   @id @default(uuid())
+  name               String
+  slug               String   @unique
+
+  country            String
+  currency           String
+  locale             String
+  timezone           String
+
+  ownerUid           String
+  status             String   @default("active")
+
+  aiSummary          String?
+  aiSummaryUpdatedAt DateTime?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([ownerUid])
+}

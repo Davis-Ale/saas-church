@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: saas_church_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: saas_church
+    ports:
+      - "5432:5432"
+    volumes:
+      - saas_church_pgdata:/var/lib/postgresql/data
+
+volumes:
+  saas_church_pgdata:

@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  function hasRole(db, churchId, uid) {
+    return exists(/databases/$(db)/documents/churchRoles/$(churchId + "_" + uid));
+  }
+
+  match /databases/{db}/documents {
+    // leitura permitida a usuários autenticados com acesso
+    match /churches/{churchId} {
+      allow read: if request.auth != null
+                  && (resource.data.ownerId == request.auth.uid
+                      || hasRole(db, churchId, request.auth.uid));
+      allow write: if false; // toda escrita via Cloud Functions
+    }
+
+    match /cells/{cellId} {
+      allow read: if request.auth != null
+                  && (resource.data.ownerId == request.auth.uid
+                      || hasRole(db, resource.data.churchId, request.auth.uid));
+      allow write: if false;
+    }
+
+    match /churchRoles/{roleId} {
+      allow read: if request.auth != null;
+      allow write: if false; // setado por setChurchRole()
+    }
+  }
+}
