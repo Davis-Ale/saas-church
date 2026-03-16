@@ -9,23 +9,95 @@ datasource db {
 }
 
 model Church {
-  id                 String   @id @default(uuid())
-  name               String
-  slug               String   @unique
+  id       String @id @default(uuid())
+  name     String
+  slug     String @unique
 
-  country            String
-  currency           String
-  locale             String
-  timezone           String
+  country  String
+  currency String
+  locale   String
+  timezone String
 
-  ownerUid           String
-  status             String   @default("active")
+  ownerUid String
+  status   String @default("active")
 
   aiSummary          String?
   aiSummaryUpdatedAt DateTime?
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members Member[]
+  cells   Cell[]
 
   @@index([ownerUid])
+}
+
+model Member {
+  id String @id @default(uuid())
+
+  churchId String
+  church   Church @relation(fields: [churchId], references: [id])
+
+  firstName String
+  lastName  String
+  email     String
+  phone     String?
+
+  birthDate DateTime?
+  address   String?
+
+  cellId String?
+  cell   Cell?   @relation(fields: [cellId], references: [id])
+
+  serviceApproved Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([churchId])
+  @@index([email])
+}
+
+model Cell {
+  id       String @id @default(uuid())
+  churchId String
+  church   Church @relation(fields: [churchId], references: [id])
+
+  name        String
+  leaderId    String?
+  address     String?
+  meetingDay  String?
+  meetingTime String?
+  status      String @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members  Member[]
+  meetings CellMeeting[]
+
+  @@index([churchId])
+}
+
+model CellMeeting {
+  id     String @id @default(uuid())
+  cellId String
+  cell   Cell   @relation(fields: [cellId], references: [id])
+
+  date  DateTime
+  notes String?
+
+  createdAt   DateTime            @default(now())
+  attendances MeetingAttendance[]
+}
+
+model MeetingAttendance {
+  id        String      @id @default(uuid())
+  meetingId String
+  meeting   CellMeeting @relation(fields: [meetingId], references: [id])
+  memberId  String
+  present   Boolean @default(false)
+
+  @@unique([meetingId, memberId])
 }

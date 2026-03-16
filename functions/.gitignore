@@ -9,3 +9,7 @@ typings/
 node_modules/
 *.local
 /src/generated/prisma
+.env
+dist
+node_modules
+*.log
