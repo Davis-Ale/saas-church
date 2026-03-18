@@ -1,34 +1,31 @@
-import * as functions from "firebase-functions";
-import { prisma } from "../../db/prisma";
-import slugify from "slugify";
-import { countryProfiles } from "../countryProfiles";
+import { Request, Response } from 'express';
+import { prisma } from '../../db/prisma';
 
-/**
- * Resolve country profile de forma segura (TS-friendly)
- */
-function resolveCountryProfile(country: string) {
-  const key = country.toUpperCase();
-
-  switch (key) {
-    case "BR":
-    case "CA":
-    case "US":
-    case "PT":
-      return { key, profile: countryProfiles[key] };
-    default:
-      return null;
+export async function createChurch(req: Request, res: Response) {
+  try {
+    const { name, country } = req.body;
+    
+    if (!name || !country) {
+      return res.status(400).json({
+        error: 'Name and country are required'
+      });
+    }
+    
+    const church = await prisma.church.create({
+      data: {
+        name,
+        country,
+        status: 'active'
+      }
+    });
+    
+    return res.status(201).json({
+      success: true,
+      data: church
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      error: error.message
+    });
   }
 }
-
-/**
- * ⚠️ FUNÇÃO TEMPORÁRIA — APENAS PARA TESTE LOCAL
- * NÃO USAR EM PRODUÇÃO
- */
-export const createChurchHttp = functions.https.onRequest(
-  async (req, res): Promise<void> => {
-    try {
-      const { name, country } = req.body ?? {};
-
-      if (!name || !country) {
-        res.status(400).json({
-          error: "

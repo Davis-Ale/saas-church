@@ -1,68 +1,19 @@
-import { FastifyInstance } from 'fastify'
-import {
+import { FastifyInstance } from 'fastify';
+import { 
+  listMembersController, 
   createMemberController,
-  deleteMemberController,
-  listMembersController,
   updateMemberController,
-} from '../controllers/members.controller'
-import {
-  createMemberBodySchema,
-  listMembersQuerySchema,
-  memberIdParamsSchema,
-  updateMemberBodySchema,
-} from '../validators/members.validator'
+  deleteMemberController
+} from '../controllers/members.controller';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { tenantMiddleware } from '../middleware/tenant.middleware';
 
-export async function membersRoutes(fastify: FastifyInstance) {
-  // LIST
-  fastify.get(
-    '/',
-    {
-      schema: {
-        querystring: listMembersQuerySchema,
-        tags: ['Members'],
-        summary: 'List members',
-      },
-    },
-    listMembersController,
-  )
-
-  // CREATE
-  fastify.post(
-    '/',
-    {
-      schema: {
-        body: createMemberBodySchema,
-        tags: ['Members'],
-        summary: 'Create member',
-      },
-    },
-    createMemberController,
-  )
-
-  // UPDATE
-  fastify.put(
-    '/:id',
-    {
-      schema: {
-        params: memberIdParamsSchema,
-        body: updateMemberBodySchema,
-        tags: ['Members'],
-        summary: 'Update member',
-      },
-    },
-    updateMemberController,
-  )
-
-  // DELETE
-  fastify.delete(
-    '/:id',
-    {
-      schema: {
-        params: memberIdParamsSchema,
-        tags: ['Members'],
-        summary: 'Delete member',
-      },
-    },
-    deleteMemberController,
-  )
+export default async function memberRoutes(fastify: FastifyInstance) {
+  fastify.addHook('preHandler', authMiddleware);
+  fastify.addHook('preHandler', tenantMiddleware);
+  
+  fastify.get('/', listMembersController);
+  fastify.post('/', createMemberController);
+  fastify.put('/:id', updateMemberController);
+  fastify.delete('/:id', deleteMemberController);
 }
