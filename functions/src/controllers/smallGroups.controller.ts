@@ -14,12 +14,9 @@ export async function listSmallGroupsController(request: FastifyRequest, reply: 
   try {
     const churchId = request.churchId!;
     
-    const smallGroups = await prisma.cell.findMany({
+    const smallGroups = await prisma.smallGroup.findMany({
       where: { churchId },
       include: {
-        leader: {
-          select: { id: true, firstName: true, lastName: true }
-        },
         members: {
           select: { id: true, firstName: true, lastName: true }
         }
@@ -38,7 +35,7 @@ export async function createSmallGroupController(request: FastifyRequest, reply:
     const churchId = request.churchId!;
     const body = createSmallGroupSchema.parse(request.body);
     
-    const smallGroup = await prisma.cell.create({
+    const smallGroup = await prisma.smallGroup.create({
       data: {
         ...body,
         churchId,
@@ -51,7 +48,7 @@ export async function createSmallGroupController(request: FastifyRequest, reply:
     if (error instanceof z.ZodError) {
       return reply.status(400).send({ 
         success: false, 
-        error: 'Dados inválidos',
+        error: 'Invalid data',
         details: error.errors
       });
     }
@@ -65,15 +62,15 @@ export async function updateSmallGroupController(request: FastifyRequest, reply:
     const churchId = request.churchId!;
     const body = createSmallGroupSchema.partial().parse(request.body);
     
-    const smallGroup = await prisma.cell.findFirst({
+    const smallGroup = await prisma.smallGroup.findFirst({
       where: { id, churchId }
     });
     
     if (!smallGroup) {
-      return reply.status(404).send({ success: false, error: 'Grupo não encontrado' });
+      return reply.status(404).send({ success: false, error: 'Small group not found' });
     }
     
-    const updated = await prisma.cell.update({
+    const updated = await prisma.smallGroup.update({
       where: { id },
       data: body
     });
@@ -89,20 +86,20 @@ export async function deleteSmallGroupController(request: FastifyRequest, reply:
     const { id } = request.params as { id: string };
     const churchId = request.churchId!;
     
-    const smallGroup = await prisma.cell.findFirst({
+    const smallGroup = await prisma.smallGroup.findFirst({
       where: { id, churchId }
     });
     
     if (!smallGroup) {
-      return reply.status(404).send({ success: false, error: 'Grupo não encontrado' });
+      return reply.status(404).send({ success: false, error: 'Small group not found' });
     }
     
-    await prisma.cell.update({
+    await prisma.smallGroup.update({
       where: { id },
       data: { status: 'inactive' }
     });
     
-    return { success: true, message: 'Grupo removido' };
+    return { success: true, message: 'Small group removed' };
   } catch (error: any) {
     return reply.status(500).send({ success: false, error: error.message });
   }

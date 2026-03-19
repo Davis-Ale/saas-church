@@ -9,19 +9,19 @@ datasource db {
 }
 
 model Church {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  country   String
-  status    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  users     User[]
-  members   Member[]
-  cells     Cell[]
-  paths     Path[]
-  ministries Ministry[]
-  events    Event[]
+  id           String        @id @default(uuid())
+  name         String
+  slug         String        @unique
+  country      String
+  status       String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  users        User[]
+  members      Member[]
+  smallGroups  SmallGroup[]
+  paths        Path[]
+  ministries   Ministry[]
+  events       Event[]
   transactions Transaction[]
 }
 
@@ -37,24 +37,24 @@ model User {
 }
 
 model Member {
-  id              String   @id @default(uuid())
+  id              String      @id @default(uuid())
   firstName       String
   lastName        String
   email           String?
   phone           String?
   birthDate       String?
   address         String?
-  cellId          String?
-  cell            Cell?    @relation(fields: [cellId], references: [id])
-  serviceApproved Boolean  @default(true)
+  smallGroupId    String?
+  smallGroup      SmallGroup? @relation(fields: [smallGroupId], references: [id])
+  serviceApproved Boolean     @default(true)
   status          String
   churchId        String
-  church          Church   @relation(fields: [churchId], references: [id])
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  church          Church      @relation(fields: [churchId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }
 
-model Cell {
+model SmallGroup {
   id          String   @id @default(uuid())
   name        String
   leaderId    String?
