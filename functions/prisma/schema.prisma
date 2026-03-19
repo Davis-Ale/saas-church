@@ -9,95 +9,113 @@ datasource db {
 }
 
 model Church {
-  id       String @id @default(uuid())
-  name     String
-  slug     String @unique
-
-  country  String
-  currency String
-  locale   String
-  timezone String
-
-  ownerUid String
-  status   String @default("active")
-
-  aiSummary          String?
-  aiSummaryUpdatedAt DateTime?
-
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  country   String
+  status    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  users     User[]
+  members   Member[]
+  cells     Cell[]
+  paths     Path[]
+  ministries Ministry[]
+  events    Event[]
+  transactions Transaction[]
+}
 
-  members Member[]
-  cells   Cell[]
-
-  @@index([ownerUid])
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  churchId  String
+  church    Church   @relation(fields: [churchId], references: [id])
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Member {
-  id String @id @default(uuid())
-
-  churchId String
-  church   Church @relation(fields: [churchId], references: [id])
-
-  firstName String
-  lastName  String
-  email     String
-  phone     String?
-
-  birthDate DateTime?
-  address   String?
-
-  cellId String?
-  cell   Cell?   @relation(fields: [cellId], references: [id])
-
-  serviceApproved Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([churchId])
-  @@index([email])
+  id              String   @id @default(uuid())
+  firstName       String
+  lastName        String
+  email           String?
+  phone           String?
+  birthDate       String?
+  address         String?
+  cellId          String?
+  cell            Cell?    @relation(fields: [cellId], references: [id])
+  serviceApproved Boolean  @default(true)
+  status          String
+  churchId        String
+  church          Church   @relation(fields: [churchId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Cell {
-  id       String @id @default(uuid())
-  churchId String
-  church   Church @relation(fields: [churchId], references: [id])
-
+  id          String   @id @default(uuid())
   name        String
   leaderId    String?
   address     String?
   meetingDay  String?
   meetingTime String?
-  status      String @default("active")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  members  Member[]
-  meetings CellMeeting[]
-
-  @@index([churchId])
+  status      String
+  churchId    String
+  church      Church   @relation(fields: [churchId], references: [id])
+  members     Member[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
-model CellMeeting {
-  id     String @id @default(uuid())
-  cellId String
-  cell   Cell   @relation(fields: [cellId], references: [id])
-
-  date  DateTime
-  notes String?
-
-  createdAt   DateTime            @default(now())
-  attendances MeetingAttendance[]
+model Path {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  order       Int?
+  status      String
+  churchId    String
+  church      Church   @relation(fields: [churchId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
-model MeetingAttendance {
-  id        String      @id @default(uuid())
-  meetingId String
-  meeting   CellMeeting @relation(fields: [meetingId], references: [id])
-  memberId  String
-  present   Boolean @default(false)
+model Ministry {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  status      String
+  churchId    String
+  church      Church   @relation(fields: [churchId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 
-  @@unique([meetingId, memberId])
+model Event {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  startDate    String
+  endDate      String?
+  price        Float?
+  maxAttendees Int?
+  status       String
+  churchId     String
+  church       Church   @relation(fields: [churchId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  type        String
+  amount      Float
+  description String
+  categoryId  String?
+  date        String
+  churchId    String
+  church      Church   @relation(fields: [churchId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
