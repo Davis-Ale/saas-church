@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0b0f1a;
+  --foreground: #ffffff;
+
+  --card: #111827;
+  --card-foreground: #ffffff;
+
+  --border: rgba(255, 255, 255, 0.08);
+
+  --primary: #3b82f6;
+  --primary-foreground: #0b0f1a;
+
+  --muted: rgba(255, 255, 255, 0.06);
+  --muted-foreground: rgba(255, 255, 255, 0.7);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--foreground);
+}

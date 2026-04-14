@@ -67,3 +67,18 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Next.js
+.next/
+
+# Env local (CRÍTICO)
+.env.local
+.env.*
+
+# Build
+dist/
+build/
+
+# Dependencies
+node_modules/
+web/node_modules/
