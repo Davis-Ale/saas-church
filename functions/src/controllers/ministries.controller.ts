@@ -1,107 +1,196 @@
-import { FastifyRequest, FastifyReply } from 'fastify';
-import { prisma } from '../db/prisma';
-import { z } from 'zod';
+import { FastifyRequest, FastifyReply } from 'fastify'
+import { z } from 'zod'
+import { prisma } from '../db/prisma'
+import {
+  createMinistrySchema,
+  updateMinistrySchema,
+} from '../validators/ministries.validator'
 
-const createMinistrySchema = z.object({
-  name: z.string().min(2),
-  description: z.string().optional()
-});
-
-export async function listMinistriesController(request: FastifyRequest, reply: FastifyReply) {
+export async function listMinistriesController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   try {
-    const churchId = request.churchId!;
-    
+    const churchId = request.churchId
+
+    if (!churchId) {
+      return reply.status(401).send({
+        success: false,
+        error: 'Church context not found',
+      })
+    }
+
     const ministries = await prisma.ministry.findMany({
-      where: { churchId },
-      include: {
-        volunteers: {
-          include: {
-            member: {
-              select: { id: true, firstName: true, lastName: true }
-            }
-          }
-        }
+      where: {
+        churchId,
+        status: 'active',
       },
-      orderBy: { name: 'asc' }
-    });
-    
-    return { success: true, data: ministries, count: ministries.length };
-  } catch (error: any) {
-    return reply.status(500).send({ success: false, error: error.message });
+      orderBy: {
+        name: 'asc',
+      },
+    })
+
+    return {
+      success: true,
+      data: ministries,
+      count: ministries.length,
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal server error'
+
+    return reply.status(500).send({
+      success: false,
+      error: message,
+    })
   }
 }
 
-export async function createMinistryController(request: FastifyRequest, reply: FastifyReply) {
+export async function createMinistryController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   try {
-    const churchId = request.churchId!;
-    const body = createMinistrySchema.parse(request.body);
-    
+    const churchId = request.churchId
+
+    if (!churchId) {
+      return reply.status(401).send({
+        success: false,
+        error: 'Church context not found',
+      })
+    }
+
+    const body = createMinistrySchema.parse(request.body)
+
     const ministry = await prisma.ministry.create({
       data: {
         ...body,
         churchId,
-        status: 'active'
-      }
-    });
-    
-    return reply.status(201).send({ success: true, data: ministry });
-  } catch (error: any) {
+        status: 'active',
+      },
+    })
+
+    return reply.status(201).send({
+      success: true,
+      data: ministry,
+    })
+  } catch (error) {
     if (error instanceof z.ZodError) {
-      return reply.status(400).send({ 
-        success: false, 
-        error: 'Dados inválidos',
-        details: error.errors
-      });
+      return reply.status(400).send({
+        success: false,
+        error: 'Invalid ministry data',
+        details: error.issues,
+      })
     }
-    return reply.status(500).send({ success: false, error: error.message });
+
+    const message = error instanceof Error ? error.message : 'Internal server error'
+
+    return reply.status(500).send({
+      success: false,
+      error: message,
+    })
   }
 }
 
-export async function updateMinistryController(request: FastifyRequest, reply: FastifyReply) {
+export async function updateMinistryController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   try {
-    const { id } = request.params as { id: string };
-    const churchId = request.churchId!;
-    const body = createMinistrySchema.partial().parse(request.body);
-    
-    const ministry = await prisma.ministry.findFirst({
-      where: { id, churchId }
-    });
-    
-    if (!ministry) {
-      return reply.status(404).send({ success: false, error: 'Ministério não encontrado' });
+    const { id } = request.params as { id: string }
+    const churchId = request.churchId
+
+    if (!churchId) {
+      return reply.status(401).send({
+        success: false,
+        error: 'Church context not found',
+      })
     }
-    
+
+    const body = updateMinistrySchema.parse(request.body)
+
+    const ministry = await prisma.ministry.findFirst({
+      where: {
+        id,
+        churchId,
+      },
+    })
+
+    if (!ministry) {
+      return reply.status(404).send({
+        success: false,
+        error: 'Ministry not found',
+      })
+    }
+
     const updated = await prisma.ministry.update({
-      where: { id },
-      data: body
-    });
-    
-    return { success: true, data: updated };
-  } catch (error: any) {
-    return reply.status(500).send({ success: false, error: error.message });
+      where: {
+        id,
+      },
+      data: body,
+    })
+
+    return {
+      success: true,
+      data: updated,
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal server error'
+
+    return reply.status(500).send({
+      success: false,
+      error: message,
+    })
   }
 }
 
-export async function deleteMinistryController(request: FastifyRequest, reply: FastifyReply) {
+export async function deleteMinistryController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   try {
-    const { id } = request.params as { id: string };
-    const churchId = request.churchId!;
-    
-    const ministry = await prisma.ministry.findFirst({
-      where: { id, churchId }
-    });
-    
-    if (!ministry) {
-      return reply.status(404).send({ success: false, error: 'Ministério não encontrado' });
+    const { id } = request.params as { id: string }
+    const churchId = request.churchId
+
+    if (!churchId) {
+      return reply.status(401).send({
+        success: false,
+        error: 'Church context not found',
+      })
     }
-    
+
+    const ministry = await prisma.ministry.findFirst({
+      where: {
+        id,
+        churchId,
+      },
+    })
+
+    if (!ministry) {
+      return reply.status(404).send({
+        success: false,
+        error: 'Ministry not found',
+      })
+    }
+
     await prisma.ministry.update({
-      where: { id },
-      data: { status: 'inactive' }
-    });
-    
-    return { success: true, message: 'Ministério removido' };
-  } catch (error: any) {
-    return reply.status(500).send({ success: false, error: error.message });
+      where: {
+        id,
+      },
+      data: {
+        status: 'inactive',
+      },
+    })
+
+    return {
+      success: true,
+      message: 'Ministry removed',
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal server error'
+
+    return reply.status(500).send({
+      success: false,
+      error: message,
+    })
   }
 }

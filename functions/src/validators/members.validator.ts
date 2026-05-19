@@ -17,8 +17,8 @@ export const createMemberBodySchema = z.object({
   phone: z.string().trim().min(1).optional(),
   birthDate: z.string().trim().min(1).optional(),
   address: z.string().trim().min(1).optional(),
-  cellId: z.string().trim().min(1).optional(),
-  serviceApproved: z.boolean().optional().default(false),
+  smallGroupId: z.string().trim().min(1).optional(),
+  serviceApproved: z.boolean().optional(),
 })
 
 export const updateMemberBodySchema = createMemberBodySchema.partial()

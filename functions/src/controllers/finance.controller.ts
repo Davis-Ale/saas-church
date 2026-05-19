@@ -1,104 +1,162 @@
-import { FastifyRequest, FastifyReply } from 'fastify';
-import { prisma } from '../db/prisma';
-import { z } from 'zod';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { FastifyRequest, FastifyReply } from 'fastify'
+import { z } from 'zod'
+import { prisma } from '../db/prisma'
+import {
+  createTransactionSchema,
+  updateTransactionSchema,
+} from '../validators/finance.validator'
 
-const createTransactionSchema = z.object({
-  type: z.enum(['income', 'expense']),
-  amount: z.number().positive(),
-  description: z.string(),
-  categoryId: z.string().optional(),
-  date: z.string()
-});
-
-export async function listTransactionsController(request: FastifyRequest, reply: FastifyReply) {
+export async function listTransactionsController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   try {
-    const churchId = request.churchId!;
-    
+    const churchId = request.churchId!
+
     const transactions = await prisma.transaction.findMany({
-      where: { churchId },
-      include: {
-        category: {
-          select: { id: true, name: true }
-        }
+      where: {
+        churchId,
       },
-      orderBy: { date: 'desc' }
-    });
-    
-    return { success: true, data: transactions, count: transactions.length };
-  } catch (error: any) {
-    return reply.status(500).send({ success: false, error: error.message });
+      orderBy: {
+        date: 'desc',
+      },
+    })
+
+    return {
+      success: true,
+      data: transactions,
+      count: transactions.length,
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal server error'
+
+    return reply.status(500).send({
+      success: false,
+      error: message,
+    })
   }
 }
 
-export async function createTransactionController(request: FastifyRequest, reply: FastifyReply) {
+export async function createTransactionController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   try {
-    const churchId = request.churchId!;
-    const body = createTransactionSchema.parse(request.body);
-    
+    const churchId = request.churchId!
+    const body = createTransactionSchema.parse(request.body)
+
     const transaction = await prisma.transaction.create({
       data: {
         ...body,
-        churchId
-      }
-    });
-    
-    return reply.status(201).send({ success: true, data: transaction });
-  } catch (error: any) {
+        churchId,
+      },
+    })
+
+    return reply.status(201).send({
+      success: true,
+      data: transaction,
+    })
+  } catch (error) {
     if (error instanceof z.ZodError) {
-      return reply.status(400).send({ 
-        success: false, 
-        error: 'Dados inválidos',
-        details: error.errors
-      });
+      return reply.status(400).send({
+        success: false,
+        error: 'Invalid transaction data',
+        details: error.issues,
+      })
     }
-    return reply.status(500).send({ success: false, error: error.message });
+
+    const message = error instanceof Error ? error.message : 'Internal server error'
+
+    return reply.status(500).send({
+      success: false,
+      error: message,
+    })
   }
 }
 
-export async function updateTransactionController(request: FastifyRequest, reply: FastifyReply) {
+export async function updateTransactionController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   try {
-    const { id } = request.params as { id: string };
-    const churchId = request.churchId!;
-    const body = createTransactionSchema.partial().parse(request.body);
-    
+    const { id } = request.params as { id: string }
+    const churchId = request.churchId!
+    const body = updateTransactionSchema.parse(request.body)
+
     const transaction = await prisma.transaction.findFirst({
-      where: { id, churchId }
-    });
-    
+      where: {
+        id,
+        churchId,
+      },
+    })
+
     if (!transaction) {
-      return reply.status(404).send({ success: false, error: 'Transação não encontrada' });
+      return reply.status(404).send({
+        success: false,
+        error: 'Transaction not found',
+      })
     }
-    
+
     const updated = await prisma.transaction.update({
-      where: { id },
-      data: body
-    });
-    
-    return { success: true, data: updated };
-  } catch (error: any) {
-    return reply.status(500).send({ success: false, error: error.message });
+      where: {
+        id,
+      },
+      data: body,
+    })
+
+    return {
+      success: true,
+      data: updated,
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal server error'
+
+    return reply.status(500).send({
+      success: false,
+      error: message,
+    })
   }
 }
 
-export async function deleteTransactionController(request: FastifyRequest, reply: FastifyReply) {
+export async function deleteTransactionController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
   try {
-    const { id } = request.params as { id: string };
-    const churchId = request.churchId!;
-    
+    const { id } = request.params as { id: string }
+    const churchId = request.churchId!
+
     const transaction = await prisma.transaction.findFirst({
-      where: { id, churchId }
-    });
-    
+      where: {
+        id,
+        churchId,
+      },
+    })
+
     if (!transaction) {
-      return reply.status(404).send({ success: false, error: 'Transação não encontrada' });
+      return reply.status(404).send({
+        success: false,
+        error: 'Transaction not found',
+      })
     }
-    
+
     await prisma.transaction.delete({
-      where: { id }
-    });
-    
-    return { success: true, message: 'Transação removida' };
-  } catch (error: any) {
-    return reply.status(500).send({ success: false, error: error.message });
+      where: {
+        id,
+      },
+    })
+
+    return {
+      success: true,
+      message: 'Transaction removed',
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal server error'
+
+    return reply.status(500).send({
+      success: false,
+      error: message,
+    })
   }
 }
