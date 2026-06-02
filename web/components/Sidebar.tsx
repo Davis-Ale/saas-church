@@ -4,9 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Church,
-  Users,
-  Home,
+  Route,
+  UsersRound,
   Handshake,
   Wallet,
   Calendar,
@@ -14,12 +13,11 @@ import {
 
 const menu = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Churches", href: "#", icon: Church },
-  { label: "Members", href: "#", icon: Users },
-  { label: "Cells", href: "#", icon: Home },            // célula = casa
-  { label: "Volunteers", href: "#", icon: Handshake },
-  { label: "Finance", href: "#", icon: Wallet },
-  { label: "Events", href: "#", icon: Calendar },
+  { label: "Small Groups", href: "/small-groups", icon: UsersRound },
+  { label: "Paths", href: "/paths", icon: Route },
+  { label: "Ministries", href: "/ministries", icon: Handshake },
+  { label: "Events", href: "/events", icon: Calendar },
+  { label: "Finance", href: "/finance", icon: Wallet },
 ];
 
 export function Sidebar() {
@@ -36,7 +34,6 @@ export function Sidebar() {
         flexDirection: "column",
       }}
     >
-      {/* Logo / Name */}
       <div
         style={{
           height: 64,
@@ -49,10 +46,9 @@ export function Sidebar() {
           fontSize: 18,
         }}
       >
-        System Name
+        SaaS Church
       </div>
 
-      {/* Menu */}
       <nav
         style={{
           padding: 12,
@@ -85,10 +81,7 @@ export function Sidebar() {
                 transition: "all 0.2s ease",
               }}
             >
-              <Icon
-                size={18}
-                color={isActive ? "#A5B4FC" : "#6B7280"}
-              />
+              <Icon size={18} color={isActive ? "#A5B4FC" : "#6B7280"} />
               {item.label}
             </Link>
           );
