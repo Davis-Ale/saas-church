@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Route,
+  Users,
   UsersRound,
   Handshake,
   Wallet,
@@ -13,6 +14,7 @@ import {
 
 const menu = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Members", href: "/members", icon: Users },
   { label: "Small Groups", href: "/small-groups", icon: UsersRound },
   { label: "Paths", href: "/paths", icon: Route },
   { label: "Ministries", href: "/ministries", icon: Handshake },
