@@ -1,49 +1,70 @@
-import React from 'react';
+import type { ReactNode } from "react";
 
-interface Column {
-  key: string;
+export interface TableColumn<T extends object> {
+  key: keyof T & string;
   label: string;
-  render?: (value: any, row: any) => React.ReactNode;
+  render?: (value: unknown, row: T) => ReactNode;
 }
 
-interface TableProps {
-  columns: Column[];
-  data: any[];
-  onRowClick?: (row: any) => void;
+interface TableProps<T extends object> {
+  columns: TableColumn<T>[];
+  data: T[];
+  onRowClick?: (row: T) => void;
 }
 
-export default function Table({ columns, data, onRowClick }: TableProps) {
+export default function Table<T extends object>({
+  columns,
+  data,
+  onRowClick,
+}: TableProps<T>) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
       <table className="w-full">
         <thead className="border-b border-gray-200 bg-gray-50">
           <tr>
-            {columns.map((col) => (
-              <th key={col.key} className="px-6 py-4 text-left text-sm font-medium text-gray-700">
-                {col.label}
+            {columns.map((column) => (
+              <th
+                key={column.key}
+                className="px-6 py-4 text-left text-sm font-medium text-gray-700"
+              >
+                {column.label}
               </th>
             ))}
           </tr>
         </thead>
+
         <tbody className="divide-y divide-gray-200">
           {data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="px-6 py-12 text-center text-gray-500">
+              <td
+                colSpan={columns.length}
+                className="px-6 py-12 text-center text-gray-500"
+              >
                 No data
               </td>
             </tr>
           ) : (
-            data.map((row, idx) => (
-              <tr 
-                key={idx} 
+            data.map((row, rowIndex) => (
+              <tr
+                key={rowIndex}
                 onClick={() => onRowClick?.(row)}
-                className={onRowClick ? 'hover:bg-gray-50 cursor-pointer' : ''}
+                className={
+                  onRowClick ? "cursor-pointer hover:bg-gray-50" : ""
+                }
               >
-                {columns.map((col) => (
-                  <td key={col.key} className="px-6 py-4">
-                    {col.render ? col.render(row[col.key], row) : row[col.key]}
-                  </td>
-                ))}
+                {columns.map((column) => {
+                  const value = row[column.key];
+
+                  return (
+                    <td key={column.key} className="px-6 py-4">
+                      {column.render
+                        ? column.render(value, row)
+                        : value === null || value === undefined
+                          ? null
+                          : String(value)}
+                    </td>
+                  );
+                })}
               </tr>
             ))
           )}

@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
+  Calendar,
+  Handshake,
   LayoutDashboard,
+  LogOut,
   Route,
   Users,
   UsersRound,
-  Handshake,
   Wallet,
-  Calendar,
 } from "lucide-react";
+import { useAuthStore } from "@/lib/stores/auth";
 
 const menu = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -24,6 +26,14 @@ const menu = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleLogout = () => {
+    logout();
+    router.replace("/login");
+  };
 
   return (
     <aside
@@ -34,34 +44,55 @@ export function Sidebar() {
         borderRight: "1px solid rgba(255,255,255,0.08)",
         display: "flex",
         flexDirection: "column",
+        position: "relative",
       }}
     >
       <div
         style={{
-          height: 64,
-          padding: "0 24px",
+          minHeight: 72,
+          padding: "16px 24px",
           display: "flex",
-          alignItems: "center",
+          flexDirection: "column",
+          justifyContent: "center",
           borderBottom: "1px solid rgba(255,255,255,0.08)",
-          color: "#E5E7EB",
-          fontWeight: 600,
-          fontSize: 18,
         }}
       >
-        SaaS Church
+        <strong
+          style={{
+            color: "#E5E7EB",
+            fontSize: 18,
+          }}
+        >
+          SaaS Church
+        </strong>
+
+        <span
+          style={{
+            marginTop: 4,
+            color: "#94A3B8",
+            fontSize: 12,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {user?.email}
+        </span>
       </div>
 
       <nav
         style={{
           padding: 12,
           display: "flex",
+          flex: 1,
           flexDirection: "column",
           gap: 4,
         }}
       >
         {menu.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive =
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
             <Link
@@ -89,6 +120,35 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      <div
+        style={{
+          padding: 12,
+          borderTop: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
+        <button
+          type="button"
+          onClick={handleLogout}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "8px 12px",
+            border: 0,
+            borderRadius: 8,
+            background: "transparent",
+            color: "#9CA3AF",
+            fontSize: 14,
+            fontWeight: 500,
+            cursor: "pointer",
+          }}
+        >
+          <LogOut size={18} color="#6B7280" />
+          Logout
+        </button>
+      </div>
     </aside>
   );
 }
