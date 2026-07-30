@@ -44,55 +44,34 @@ export function Sidebar() {
         borderRight: "1px solid rgba(255,255,255,0.08)",
         display: "flex",
         flexDirection: "column",
-        position: "relative",
       }}
     >
       <div
         style={{
-          minHeight: 72,
-          padding: "16px 24px",
+          height: 64,
+          padding: "0 24px",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
+          alignItems: "center",
           borderBottom: "1px solid rgba(255,255,255,0.08)",
+          color: "#E5E7EB",
+          fontWeight: 600,
+          fontSize: 18,
         }}
       >
-        <strong
-          style={{
-            color: "#E5E7EB",
-            fontSize: 18,
-          }}
-        >
-          SaaS Church
-        </strong>
-
-        <span
-          style={{
-            marginTop: 4,
-            color: "#94A3B8",
-            fontSize: 12,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {user?.email}
-        </span>
+        SaaS Church
       </div>
 
       <nav
         style={{
           padding: 12,
           display: "flex",
-          flex: 1,
           flexDirection: "column",
           gap: 4,
         }}
       >
         {menu.map((item) => {
           const Icon = item.icon;
-          const isActive =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const isActive = pathname === item.href;
 
           return (
             <Link
@@ -123,10 +102,26 @@ export function Sidebar() {
 
       <div
         style={{
-          padding: 12,
+          marginTop: "auto",
+          padding: 16,
           borderTop: "1px solid rgba(255,255,255,0.08)",
         }}
       >
+        {user?.email && (
+          <p
+            style={{
+              marginBottom: 12,
+              overflow: "hidden",
+              color: "#9CA3AF",
+              fontSize: 12,
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {user.email}
+          </p>
+        )}
+
         <button
           type="button"
           onClick={handleLogout}
@@ -134,18 +129,18 @@ export function Sidebar() {
             width: "100%",
             display: "flex",
             alignItems: "center",
-            gap: 12,
+            gap: 10,
             padding: "8px 12px",
             border: 0,
             borderRadius: 8,
             background: "transparent",
             color: "#9CA3AF",
+            cursor: "pointer",
             fontSize: 14,
             fontWeight: 500,
-            cursor: "pointer",
           }}
         >
-          <LogOut size={18} color="#6B7280" />
+          <LogOut size={18} />
           Logout
         </button>
       </div>
