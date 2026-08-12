@@ -81,4 +81,7 @@ build/
 
 # Dependencies
 node_modules/
+web/node_modules/.cursor/rules/saas-church-private.mdc
+
+.cursor/
 web/node_modules/
