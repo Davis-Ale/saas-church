@@ -12,14 +12,15 @@ export default function DashboardGroupLayout({
 }) {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
 
   useEffect(() => {
-    if (!user) {
+    if (hasHydrated && !user) {
       router.replace('/login');
     }
-  }, [user, router]);
+  }, [hasHydrated, user, router]);
 
-  if (!user) {
+  if (!hasHydrated || !user) {
     return null;
   }
 
