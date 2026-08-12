@@ -47,10 +47,10 @@ export async function loginController(request: FastifyRequest, reply: FastifyRep
         churchId: user.churchId
       }
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return reply.status(400).send({ success: false, error: 'Invalid data' });
     }
-    return reply.status(500).send({ success: false, error: error.message });
+    return reply.status(500).send({ success: false, error: error instanceof Error ? error.message : 'Internal server error' });
   }
 }
