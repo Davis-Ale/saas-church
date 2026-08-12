@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   smallGroupsApi,
+  type CreateSmallGroupData,
   type SmallGroup,
 } from "@/lib/api/smallGroups";
 import Button from "@/components/ui/Button";
-import Table, { type TableColumn } from "@/components/ui/Table";
-import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
+import Modal from "@/components/ui/Modal";
+import Table, { type TableColumn } from "@/components/ui/Table";
 
 interface SmallGroupFormData {
   name: string;
@@ -27,49 +28,39 @@ const emptyFormData: SmallGroupFormData = {
 export default function SmallGroupsPage() {
   const [groups, setGroups] = useState<SmallGroup[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<SmallGroup | null>(null);
-  const [formData, setFormData] =
-    useState<SmallGroupFormData>(emptyFormData);
+  const [formData, setFormData] = useState<SmallGroupFormData>(emptyFormData);
 
-  const loadGroups = async () => {
+  const loadGroups = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
     try {
       const data = await smallGroupsApi.getAll();
       setGroups(data);
-    } catch (error) {
-      console.error("Failed to load groups:", error);
+    } catch {
+      setError("Failed to load small groups");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void loadGroups();
-  }, []);
+  }, [loadGroups]);
 
   const resetForm = () => {
     setFormData(emptyFormData);
     setEditingGroup(null);
   };
 
-  const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
-    event.preventDefault();
-
-    try {
-      if (editingGroup) {
-        await smallGroupsApi.update(editingGroup.id, formData);
-      } else {
-        await smallGroupsApi.create(formData);
-      }
-
-      setIsModalOpen(false);
-      resetForm();
-      await loadGroups();
-    } catch (error) {
-      console.error("Failed to save group:", error);
-    }
+  const handleOpenCreate = () => {
+    resetForm();
+    setError("");
+    setIsModalOpen(true);
   };
 
   const handleEdit = (group: SmallGroup) => {
@@ -80,6 +71,7 @@ export default function SmallGroupsPage() {
       meetingDay: group.meetingDay || "",
       meetingTime: group.meetingTime || "",
     });
+    setError("");
     setIsModalOpen(true);
   };
 
@@ -88,10 +80,48 @@ export default function SmallGroupsPage() {
     resetForm();
   };
 
+  const buildPayload = (): CreateSmallGroupData => ({
+    name: formData.name.trim(),
+    address: formData.address.trim() || undefined,
+    meetingDay: formData.meetingDay.trim() || undefined,
+    meetingTime: formData.meetingTime.trim() || undefined,
+  });
+
+  const handleSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+
+    try {
+      const payload = buildPayload();
+
+      if (editingGroup) {
+        await smallGroupsApi.update(editingGroup.id, payload);
+      } else {
+        await smallGroupsApi.create(payload);
+      }
+
+      handleCloseModal();
+      await loadGroups();
+    } catch {
+      setError("Failed to save small group");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const columns: TableColumn<SmallGroup>[] = [
     {
       key: "name",
       label: "Name",
+    },
+    {
+      key: "address",
+      label: "Address",
+      render: (value) =>
+        typeof value === "string" && value.length > 0 ? value : "-",
     },
     {
       key: "meetingDay",
@@ -131,36 +161,35 @@ export default function SmallGroupsPage() {
     },
   ];
 
-  if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
-
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-3xl font-bold text-gray-900">
           Small Groups
         </h1>
 
-        <Button
-          onClick={() => {
-            resetForm();
-            setIsModalOpen(true);
-          }}
-        >
+        <Button onClick={handleOpenCreate}>
           Add Small Group
         </Button>
       </div>
 
-      <Table
-        columns={columns}
-        data={groups}
-        onRowClick={handleEdit}
-      />
+      {error && (
+        <div className="mb-6 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex h-64 items-center justify-center">
+          Loading...
+        </div>
+      ) : (
+        <Table
+          columns={columns}
+          data={groups}
+          onRowClick={handleEdit}
+        />
+      )}
 
       <Modal
         isOpen={isModalOpen}
@@ -204,13 +233,14 @@ export default function SmallGroupsPage() {
           />
 
           <div className="flex gap-3 pt-4">
-            <Button type="submit">
-              Save
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving..." : "Save"}
             </Button>
 
             <Button
               variant="secondary"
               onClick={handleCloseModal}
+              disabled={saving}
             >
               Cancel
             </Button>
